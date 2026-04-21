@@ -38,6 +38,10 @@ jobs:
         run: |
           Rscript -e "install.packages(c('rmarkdown','knitr','xml2','downlit','markdown'), repos='https://cloud.r-project.org')"
 
+      - name: Verify R packages
+        run: |
+          Rscript -e "library(rmarkdown); library(knitr)"
+      
       - name: Render Quarto site
         run: quarto render
 
