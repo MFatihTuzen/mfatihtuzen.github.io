@@ -39,6 +39,9 @@ format:
       dark: darkly
     css: styles.css
 
+execute:
+  freeze: auto
+
 editor: visual
 
 

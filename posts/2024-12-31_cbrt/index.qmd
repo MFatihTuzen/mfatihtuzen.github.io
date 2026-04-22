@@ -62,9 +62,9 @@ The `getAllCategoriesInfo` function in the **CBRT R package** provides a conveni
 #| message: false
 
 library(CBRT)
-my_api_key <- readLines("D:/evds_api_key.txt",warn=FALSE)
-
-Categories <- getAllCategoriesInfo(CBRTKey = my_api_key)
+my_api_key <- Sys.getenv("EVDS_API_KEY")
+data("allCBRTCategories")
+Categories <- allCBRTCategories
 head(Categories)
 ```
 
@@ -107,7 +107,7 @@ Series <- getAllSeriesInfo(CBRTKey = my_api_key)
 ```{r}
 #| echo: false
 
-Series <- readRDS("D:/series.rds")
+Series <- readRDS("./series.rds")
 
 ```
 

@@ -6,73 +6,35 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
+  contents: write
 
 jobs:
   build-deploy:
     runs-on: ubuntu-latest
 
+    env:
+      EVDS_API_KEY: ${{ secrets.EVDS_API_KEY }}
+
     steps:
-      - name: Checkout repository
+      - name: Check out repository
         uses: actions/checkout@v4
 
-      - name: Setup Pages
-        uses: actions/configure-pages@v5
-
-      - name: Setup Quarto
+      - name: Set up Quarto
         uses: quarto-dev/quarto-actions/setup@v2
 
-      - name: Setup R
+      - name: Set up R
         uses: r-lib/actions/setup-r@v2
         with:
+          r-version: renv
           use-public-rspm: true
 
-      - name: Setup Pandoc
-        uses: r-lib/actions/setup-pandoc@v2
+      - name: Set up renv
+        uses: r-lib/actions/setup-renv@v2
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libuv1-dev libxml2-dev libcurl4-openssl-dev libssl-dev
-
-      - name: Install R packages
-        run: |
-          Rscript -e "install.packages(c(
-            'rmarkdown',
-            'knitr',
-            'xml2',
-            'downlit',
-            'markdown',
-            'purrr',
-            'dplyr',
-            'ggplot2',
-            'tidyr',
-            'readr',
-            'stringr',
-            'tibble',
-            'openxlsx',
-            'janitor'
-          ), repos='https://cloud.r-project.org')"
-
-
-      - name: Verify R packages
-        run: |
-          Rscript -e "library(rmarkdown); library(knitr); library(xml2); library(markdown); library(purrr)"
-
-      - name: Render Quarto site
-        run: quarto render
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Render and Publish
+        uses: quarto-dev/quarto-actions/publish@v2
         with:
-          path: _site
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          target: gh-pages
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          EVDS_API_KEY: ${{ secrets.EVDS_API_KEY }}
