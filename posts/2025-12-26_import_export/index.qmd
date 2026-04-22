@@ -11,8 +11,6 @@ format:
     code-tools: true
     code-overflow: scroll
     code-block-background: true
-  pdf:
-    toc: true
 execute:
   echo: true
   warning: false

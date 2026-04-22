@@ -28,7 +28,7 @@ In statistical practice, missingness is often represented as `NA` (Not Available
 
 In this article, we will cover:
 
--    The theoretical foundations of missing data mechanisms (MCAR, MAR, MNAR).
+-   The theoretical foundations of missing data mechanisms (MCAR, MAR, MNAR).
 -   How to detect and visualize missing values in R.
 -   Different strategies for handling missingness, from simple imputation to advanced multiple imputation techniques.
 -   A practical workflow using the NHANES dataset, widely used in health research, to demonstrate methods in R.
@@ -36,7 +36,7 @@ In this article, we will cover:
 
 We will use several R packages throughout this tutorial:
 
--    **tidyverse**: Data wrangling and visualization
+-   **tidyverse**: Data wrangling and visualization
 -   **naniar** and **VIM**: Tools for exploring and visualizing missing data
 -   **mice**: Multiple imputation by chained equations
 -   **missForest**: Random forest–based imputation for nonlinear data
@@ -198,7 +198,7 @@ kable(by_age,    caption = "BMI missingness by Age band (%)")
 **Which methods are valid under which mechanism?**
 
 | Mechanism | Example (NHANES context)                             | Valid methods                                             | Notes                                    |
-|-----------------|-------------------|---------------------|-----------------|
+|-----------|------------------------------------------------------|-----------------------------------------------------------|------------------------------------------|
 | **MCAR**  | Random loss of `BMI` records                         | Complete-case, single imputation, MI                      | Unbiased but may waste data              |
 | **MAR**   | `BMI` missingness varies by observed `Age`, `Gender` | **Multiple Imputation (MICE)**, likelihood/EM, missForest | Include strong predictors of missingness |
 | **MNAR**  | People with very high `BMI` hide it                  | Sensitivity analysis, selection/pattern-mixture models    | MAR-based MI alone is biased             |
@@ -637,7 +637,7 @@ We applied three different approaches to handle missing BMI values in the `nhane
 **🔑 Overall Comparison**
 
 | Method                   | Keeps All Data        | Coefficients Similar?         | SE Adjusted for Uncertainty? | Main Issue               |
-|---------------|---------------|---------------|---------------|---------------|
+|--------------------------|-----------------------|-------------------------------|------------------------------|--------------------------|
 | Complete Case (CCA)      | ❌ (\~1500 rows lost) | Yes, but less precise         | ✅ (but biased if MAR/MNAR)  | Data loss, possible bias |
 | Single Imputation (SI)   | ✅                    | Similar to CCA                | ❌ Underestimated            | Overconfident inference  |
 | Multiple Imputation (MI) | ✅                    | Somewhat different (esp. Age) | ✅ Properly adjusted         | More computation needed  |
@@ -655,7 +655,7 @@ We applied three different approaches to handle missing BMI values in the `nhane
 ## Comparison of Common Imputation Methods
 
 | Method                                          | Description                                                        | Advantages                                        | Disadvantages                                    |
-|-----------------|---------------------|-----------------|-----------------|
+|-------------------------------------------------|--------------------------------------------------------------------|---------------------------------------------------|--------------------------------------------------|
 | Listwise Deletion                               | Removes all observations containing missing values                 | Very simple, quick to implement                   | Substantial data loss, potential bias            |
 | Mean / Median / Mode                            | Replaces missing values with a fixed statistic                     | Easy to apply, preserves sample size              | Reduces variance, distorts relationships         |
 | LOCF (Last Observation Carried Forward)         | Uses the last available value (mainly time series)                 | Useful in longitudinal data, preserves continuity | Ignores trends, underestimates variability       |

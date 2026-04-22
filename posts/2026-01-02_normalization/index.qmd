@@ -15,8 +15,6 @@ format:
     code-tools: true
     code-overflow: scroll
     code-block-background: true
-  pdf:
-    toc: true
 execute:
   echo: true
   warning: false
@@ -93,7 +91,7 @@ The key takeaway is that normalization should be applied **with respect to the m
 ### When Is Normalization Needed? A Model-Based Decision Table
 
 | Model / Method                | Is Normalization Recommended? | Rationale                                                                |
-|------------------|------------------|-----------------------------------|
+|-------------------|-------------------|-----------------------------------|
 | KNN                           | Yes                           | Distance calculations are scale-sensitive                                |
 | K-means                       | Yes                           | Cluster assignment depends on distances                                  |
 | PCA                           | Yes                           | Variance directions dominated by scale                                   |
