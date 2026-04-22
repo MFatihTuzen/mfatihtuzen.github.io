@@ -327,15 +327,15 @@ openxlsx::insertImage(
 
 **`ggsave()`** and **`insertImage()`** functions are used together to export a plot and place it into an Excel worksheet.
 
--    **`ggsave()`**: Saves the `sales_plot` object as an image file (in this case, a temporary PNG file). This ensures that the plot is explicitly created and available for further use, especially in non-interactive environments.
+-   **`ggsave()`**: Saves the `sales_plot` object as an image file (in this case, a temporary PNG file). This ensures that the plot is explicitly created and available for further use, especially in non-interactive environments.
 
--    **`img_file <- tempfile(fileext = ".png")`**: Creates a temporary file path where the plot image will be stored.
+-   **`img_file <- tempfile(fileext = ".png")`**: Creates a temporary file path where the plot image will be stored.
 
--    **`file.exists(img_file)`**: Checks whether the image file has been successfully created before attempting to insert it into the workbook.
+-   **`file.exists(img_file)`**: Checks whether the image file has been successfully created before attempting to insert it into the workbook.
 
--    **`insertImage()`**: An **openxlsx** function used to insert an external image file into an Excel worksheet.
+-   **`insertImage()`**: An **openxlsx** function used to insert an external image file into an Excel worksheet.
 
-    -    **`wb`**: Specifies the workbook to insert the image into.
+    -   **`wb`**: Specifies the workbook to insert the image into.
     -    **`sheet = "Charts"`**: Specifies the worksheet where the image will be placed.
     -    **`file = img_file`**: Provides the path to the saved plot image.
     -    **`startCol = 1, startRow = 1`**: Inserts the image starting at cell A1 of the "Charts" worksheet.
