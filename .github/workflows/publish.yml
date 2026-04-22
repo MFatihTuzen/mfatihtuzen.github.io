@@ -28,16 +28,22 @@ jobs:
           r-version: renv
           use-public-rspm: true
 
+
       - name: Install system dependencies
         run: |
-         sudo apt-get update
-         sudo apt-get install -y \
-          libglpk40 \
-          libfontconfig1-dev \
-          libfreetype6-dev \
-          libpng-dev \
-          libtiff5-dev \
-          libjpeg-dev
+          sudo apt-get update
+          sudo apt-get install -y \
+            libglpk40 \
+            libfontconfig1-dev \
+            libfreetype6-dev \
+            libpng-dev \
+            libtiff5-dev \
+            libjpeg-dev \
+            libharfbuzz-dev \
+            libfribidi-dev \
+            libxml2-dev \
+            libcurl4-openssl-dev \
+            libssl-dev
 
       - name: Set up renv
         uses: r-lib/actions/setup-renv@v2
