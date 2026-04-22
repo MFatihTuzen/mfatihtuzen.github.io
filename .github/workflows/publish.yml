@@ -28,6 +28,11 @@ jobs:
           r-version: renv
           use-public-rspm: true
 
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libglpk40
+
       - name: Set up renv
         uses: r-lib/actions/setup-renv@v2
 
