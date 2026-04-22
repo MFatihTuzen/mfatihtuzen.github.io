@@ -30,8 +30,14 @@ jobs:
 
       - name: Install system dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y libglpk40
+         sudo apt-get update
+         sudo apt-get install -y \
+          libglpk40 \
+          libfontconfig1-dev \
+          libfreetype6-dev \
+          libpng-dev \
+          libtiff5-dev \
+          libjpeg-dev
 
       - name: Set up renv
         uses: r-lib/actions/setup-renv@v2
