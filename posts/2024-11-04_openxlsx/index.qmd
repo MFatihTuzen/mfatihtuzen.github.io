@@ -296,20 +296,50 @@ sales_plot <- ggplot(sales_data, aes(x = Date, y = Sales)) +
        y = "Sales ($)") +
   theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold"))
 
-# Save plot to workbook
-insertPlot(wb, "Charts", width = 8, height = 6,
-          startCol = 1, startRow = 1)
+# Save plot to a temporary image file
+img_file <- tempfile(fileext = ".png")
+ggsave(
+  filename = img_file,
+  plot = sales_plot,
+  width = 8,
+  height = 6,
+  units = "in",
+  dpi = 300
+)
+
+if (!file.exists(img_file)) {
+  stop(paste("Plot image file was not created:", img_file))
+}
+
+# Insert saved image into workbook
+openxlsx::insertImage(
+  wb,
+  sheet = "Charts",
+  file = img_file,
+  startCol = 1,
+  startRow = 1,
+  width = 8,
+  height = 6,
+  units = "in"
+)
+
 ```
 
-**`insertPlot()`** is an **openxlsx** function that saves the current plot into a specified worksheet in an Excel workbook.
+**`ggsave()`** and **`insertImage()`** functions are used together to export a plot and place it into an Excel worksheet.
 
--   **`wb`**: Specifies the workbook to insert the plot into.
+-    **`ggsave()`**: Saves the `sales_plot` object as an image file (in this case, a temporary PNG file). This ensures that the plot is explicitly created and available for further use, especially in non-interactive environments.
 
--   **`"Charts"`**: Specifies the worksheet where the plot will be placed.
+-    **`img_file <- tempfile(fileext = ".png")`**: Creates a temporary file path where the plot image will be stored.
 
--   **`width = 8, height = 6`**: Sets the width and height of the plot in inches.
+-    **`file.exists(img_file)`**: Checks whether the image file has been successfully created before attempting to insert it into the workbook.
 
--   **`startCol = 1, startRow = 1`**: Inserts the plot starting at cell A1 of the "Charts" worksheet.
+-    **`insertImage()`**: An **openxlsx** function used to insert an external image file into an Excel worksheet.
+
+    -    **`wb`**: Specifies the workbook to insert the image into.
+    -    **`sheet = "Charts"`**: Specifies the worksheet where the image will be placed.
+    -    **`file = img_file`**: Provides the path to the saved plot image.
+    -    **`startCol = 1, startRow = 1`**: Inserts the image starting at cell A1 of the "Charts" worksheet.
+    -    **`width = 8, height = 6`**: Sets the width and height of the image in inches.
 
 ### Step 5: Add Regional Analysis
 
