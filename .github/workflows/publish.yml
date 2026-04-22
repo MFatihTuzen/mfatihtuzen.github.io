@@ -55,7 +55,9 @@ jobs:
             'tidyr',
             'readr',
             'stringr',
-            'tibble'
+            'tibble',
+            'openxlsx',
+            'janitor'
           ), repos='https://cloud.r-project.org')"
 
 
