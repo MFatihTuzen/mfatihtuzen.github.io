@@ -1,0 +1,281 @@
+---
+title: "Publishing a Quarto Blog: What I Learned Moving from Netlify to GitHub Pages"
+author: "M. Fatih Tüzen"
+date: "2026-04-24"
+categories: [Quarto, R, GitHub Pages, Netlify, Data Science]
+format:
+  html:
+    toc: true
+    toc-depth: 4
+    number-sections: true
+    code-tools: true
+    code-overflow: scroll
+    code-block-background: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+![](netlify_github.png){fig-align="center"}
+
+## Introduction
+
+Quarto makes it surprisingly easy to build a blog.
+
+You write your content, render it, and publish it. Everything works—until it doesn’t.
+
+Quarto has made it remarkably easy to create modern technical websites, blogs, books, and reports from plain text files. A typical Quarto website can combine narrative text, executable code, figures, tables, references, and multiple output formats in a single reproducible publishing workflow. In that sense, Quarto is not only a writing tool; it is also a publishing system designed especially for computational and data-driven content. The official Quarto documentation describes websites as projects that can be rendered and published to several destinations, including GitHub Pages, Netlify, Posit Connect, and other static hosting services [@quartoWebsites; @quartoPublishing].
+
+For someone writing about R, statistics, or data science, this is very attractive. You can write a blog post in `.qmd`, run your R code inside the document, generate plots and tables, render the site locally, and then publish the resulting static files. At first glance, the workflow looks almost linear:
+
+1.  write the content,
+2.  render the site,
+3.  deploy it,
+4.  share the link.
+
+Many introductory tutorials understandably focus on this smooth path. They explain how to create a Quarto website, configure the `_quarto.yml` file, add posts, render the project, and publish the site. These steps are necessary, but they do not fully describe what happens when a Quarto blog becomes a living project rather than a one-time demo.
+
+The real questions usually appear later. What happens when the site grows? What happens when posts include code, external data sources, generated images, downloadable files, or multiple output formats? What happens when the website builds successfully on your own computer but fails in the deployment environment? At that point, publishing is no longer just about pushing HTML files to the web. It becomes a question of reproducibility, dependency management, build strategy, and platform choice.
+
+This article reflects on that second stage: the stage where a Quarto blog moves from a local project to a maintained public website. More specifically, it discusses the practical lessons learned while moving a Quarto-based blog from Netlify to GitHub Pages. The aim is not to provide another “click here, then click there” tutorial. Instead, the goal is to discuss the kinds of issues that are often invisible at the beginning: build limits, environment differences, hidden dependencies, external services, file paths, output formats, and the trade-offs between convenience and control.
+
+In short, this is a real-world deployment story. Not because the technical details are unique, but because the pattern is common: a tool works beautifully in local development, then the publishing pipeline reveals the assumptions we did not know we were making.
+
+------------------------------------------------------------------------
+
+## When Things Start to Break
+
+Like many users, I initially chose Netlify as my deployment platform. It is fast, easy to configure, and works very well for traditional static websites. With minimal setup, it is possible to connect a repository, trigger automatic builds, and publish a site within minutes. For simple blogs and documentation pages, this model is both convenient and efficient.
+
+For a while, everything worked smoothly.
+
+However, as the project evolved, the nature of the website also started to change. What initially looked like a static blog gradually became a more dynamic, computation-driven project. Posts were no longer just text; they included code execution, data processing, and generated outputs such as figures, tables, and downloadable files.
+
+At this point, some structural limitations of build-based deployment started to become more visible.
+
+First, every deployment is essentially a full rebuild. Even small changes may trigger a complete build process, depending on the configuration. While this is not an issue for lightweight static content, it becomes more significant for projects that rely on computation.
+
+Second, data-driven Quarto projects are inherently heavier than typical static sites. Rendering a post may involve running R code, loading libraries, generating plots, or even accessing external data sources. These steps increase both build time and resource usage.
+
+Third, frequent updates amplify the effect. A workflow that feels fast at the beginning can become noticeably slower as the number of posts grows and the project becomes more complex. Over time, this can translate into longer build durations and increased consumption of available resources.
+
+None of these are “failures” in the strict sense. They are natural consequences of using a system designed primarily for static content in a context that increasingly behaves like a computational workflow.
+
+At this stage, the central question was no longer:
+
+> *How do I deploy this site?*
+
+but rather:
+
+> *Is this deployment model sustainable for a data-driven Quarto project in the long run?*
+
+## Moving to GitHub Pages
+
+At this point, the decision to explore alternatives was not driven by a single failure, but by a growing mismatch between the project’s needs and the deployment model.
+
+GitHub Pages emerged as a natural alternative.
+
+Unlike platforms that rely on external build services, GitHub Pages is closely integrated with the repository itself. This creates a different workflow: instead of delegating the entire process to a managed service, the developer has more direct control over how the site is built and deployed.
+
+This shift might seem subtle, but it changes the way you think about publishing.
+
+In a repository-driven approach, the website is no longer just an output. It becomes part of a controlled pipeline:
+
+-   the source files are versioned,
+-   the build process is explicitly defined,
+-   and the output is reproducible under the same conditions.
+
+This level of control is particularly important for projects that include code execution and data processing. When rendering depends on computations, it becomes essential to understand *how* and *where* those computations are performed.
+
+Another important difference is transparency. Build logs, dependency resolution, and execution steps are visible and traceable. While this may introduce additional complexity at first, it also makes debugging and long-term maintenance significantly easier.
+
+Of course, this approach comes with a trade-off.
+
+Compared to Netlify, GitHub Pages requires a bit more effort to set up and maintain. It is less “plug-and-play” and more “build-your-own-pipeline.” However, for projects that go beyond simple static content, this added responsibility often translates into greater flexibility.
+
+In that sense, the transition was not just about switching platforms. It was about moving from a convenience-oriented model to a control-oriented one.
+
+And that shift becomes especially meaningful once the project starts to grow.
+
+## What You Don’t See in Tutorials
+
+Most tutorials focus on the ideal path: everything works, the site renders, and deployment succeeds. While this is useful for getting started, it often hides an important reality.
+
+As soon as a project moves beyond a simple example, a different set of challenges begins to emerge—challenges that are rarely discussed in introductory guides.
+
+### Environment Differences
+
+One of the first realizations is that the local environment and the deployment environment are fundamentally different.
+
+A project that works perfectly on a personal machine may fail when executed elsewhere. Differences in operating systems, available libraries, or system configurations can lead to unexpected behavior.
+
+> If it works locally, it only proves one thing: it works locally.
+
+------------------------------------------------------------------------
+
+### Dependency Management
+
+Dependencies are not always as explicit as they seem. Even when a project appears to rely on a small set of libraries, there are often additional layers:
+
+-   indirect dependencies
+-   optional components
+-   version-specific behaviors
+
+These hidden relationships can make a project fragile when moved across environments.
+
+------------------------------------------------------------------------
+
+### System-Level Requirements
+
+Not all requirements are defined within the project itself. Some dependencies exist at the system level, especially for:
+
+-   graphics rendering
+-   font handling
+-   data processing backends
+
+These are often invisible during development but become critical during deployment, particularly in clean or minimal environments.
+
+------------------------------------------------------------------------
+
+### File and Path Handling
+
+File handling is more sensitive than it appears. Paths that work locally may fail in another environment due to:
+
+-   differences in working directories
+-   case sensitivity in file systems
+-   missing intermediate outputs
+
+Even small assumptions about file locations can introduce subtle but impactful errors.
+
+------------------------------------------------------------------------
+
+### External Data Sources
+
+Using external data sources introduces another layer of uncertainty.
+
+While integrating APIs or remote datasets is convenient, it also creates dependencies on factors outside the project’s control:
+
+-   network availability
+-   response times
+-   service stability
+
+> Every external dependency is a potential failure point.
+
+------------------------------------------------------------------------
+
+### Output Complexity
+
+Supporting multiple output formats can significantly increase complexity. While HTML is typically straightforward, additional formats may require:
+
+-   extra tools
+-   additional configuration
+-   longer build processes
+
+As the number of outputs grows, so does the likelihood of unexpected issues during rendering.
+
+------------------------------------------------------------------------
+
+These challenges are not unique to any specific platform. They are inherent to projects that combine content, computation, and deployment into a single workflow.
+
+And they tend to appear only after the initial setup phase—when the project starts to grow.
+
+## Lessons Learned
+
+After going through this transition, it became clear that the real challenge is not learning a tool, but understanding the system behind it. What initially looked like a simple publishing workflow turned out to involve multiple layers—each with its own assumptions, constraints, and trade-offs.
+
+Several key lessons emerged from this process.
+
+### Reproducibility Is More Than Code
+
+It is easy to assume that a project is reproducible if the code runs successfully. In reality, reproducibility depends on much more than that.
+
+It includes the execution environment, the dependencies, the system configuration, and even the availability of external resources.
+
+> A project is reproducible only if its environment is reproducible.
+
+------------------------------------------------------------------------
+
+### Simplicity Improves Reliability
+
+As a project grows, there is a natural tendency to add features, outputs, and integrations. However, every additional component increases the complexity of the pipeline. In practice, simpler workflows tend to be more robust and easier to maintain.
+
+> The simpler the pipeline, the more reliable the deployment.
+
+------------------------------------------------------------------------
+
+### External Dependencies Should Be Minimized
+
+External services, APIs, and remote data sources are powerful, but they introduce uncertainty. They depend on factors that are outside the control of the project:
+
+-   network conditions
+-   service availability
+-   response times
+
+Reducing reliance on external components—especially during deployment—can significantly improve stability.
+
+------------------------------------------------------------------------
+
+### Local Does Not Equal Production
+
+One of the most common misconceptions in development is assuming that local success guarantees global success.
+
+Different environments behave differently. What works in one context may fail in another without any changes in the code.
+
+> If it works on your machine, it only proves that it works on your machine.
+
+------------------------------------------------------------------------
+
+### Build Time Is a Signal
+
+Long build times are not just an inconvenience. They often indicate underlying issues:
+
+-   unnecessary computations
+-   inefficient workflows
+-   excessive dependencies
+
+Instead of treating build time as a secondary concern, it should be seen as a signal that something in the pipeline can be improved.
+
+------------------------------------------------------------------------
+
+Taken together, these lessons shift the perspective from “how to deploy a website” to a more meaningful question:
+
+> *How to design a workflow that is stable, reproducible, and sustainable over time?*
+
+## Netlify vs GitHub Pages
+
+After working with both platforms, the differences become clearer when viewed from a practical perspective rather than a purely technical one.
+
+Both Netlify and GitHub Pages are capable solutions for publishing Quarto websites. However, they are built around different assumptions, and those assumptions become more visible as a project grows.
+
+| Feature                              | Netlify                            | GitHub Pages                     |
+|--------------------|--------------------|--------------------------------|
+| Initial setup                        | Very easy                          | Moderate                         |
+| Deployment model                     | Managed build service              | Repository-driven workflow       |
+| Resource limits                      | Present (especially on free tiers) | No strict limits for typical use |
+| Control over pipeline                | Limited                            | High                             |
+| Debugging visibility                 | Restricted                         | Detailed logs and transparency   |
+| Suitability for data-driven projects | Limited                            | More flexible                    |
+
+Netlify excels in simplicity. For lightweight static sites, documentation pages, or personal blogs with minimal computation, it provides a smooth and efficient experience. The setup is fast, and the platform handles most of the deployment process automatically.
+
+GitHub Pages, on the other hand, offers greater control. While it may require more initial effort, it provides a clearer view of the build process and allows more flexibility in handling dependencies, workflows, and project structure.
+
+The difference becomes especially important for Quarto projects that include code execution, data processing, or multiple outputs. In such cases, having visibility and control over the pipeline can make a significant difference in both stability and maintainability.
+
+------------------------------------------------------------------------
+
+## Which One Should You Choose?
+
+There is no single correct answer, but there is a practical way to think about the choice.
+
+-   If your project is a simple static blog with minimal computation, Netlify is often the most convenient option.
+-   If your project involves data processing, code execution, or a more complex workflow, GitHub Pages tends to offer a more sustainable solution.
+
+Ultimately, the decision is less about the platform itself and more about the nature of the project.
+
+------------------------------------------------------------------------
+
+## Final Thoughts
+
+Publishing a Quarto blog is easy. Maintaining it as a real-world project is not. As soon as a project moves beyond a simple example, deployment becomes part of the system design. It requires thinking about environments, dependencies, workflows, and long-term sustainability. The tools themselves are not the challenge. The challenge is understanding how they interact. Once that becomes clear, the process becomes not only manageable, but also much more intentional. In that sense, deployment is no longer just a final step. It is part of the architecture.

@@ -42,6 +42,8 @@ format:
       light: flatly
       dark: darkly
     css: styles.css
+    
+bibliography: references.bib
 
 execute:
   freeze: auto
