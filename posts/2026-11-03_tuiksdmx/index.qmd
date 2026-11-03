@@ -1,0 +1,202 @@
+---
+title: "Introducing tuiksdmx: A Metadata-Driven R Client for Turkish Official Statistics"
+subtitle: "Exploring and retrieving TÜİK SDMX data without manually constructing complex query keys"
+author: "M. Fatih Tüzen"
+date: "2026-11-03"
+description: "An introduction to tuiksdmx, an open-source R package for authenticated access to the Turkish Statistical Institute's SDMX API, with metadata discovery, validated filters, and practical examples."
+categories: [R Programming, Official Statistics, SDMX, API, R Packages, Data Access]
+image: "https://raw.githubusercontent.com/MFatihTuzen/tuiksdmx/main/man/figures/logo.png"
+format:
+  html:
+    toc: true
+    toc-depth: 3
+    number-sections: true
+    code-tools: true
+    code-overflow: scroll
+    code-block-background: true
+execute:
+  eval: false
+  echo: true
+  warning: false
+  message: false
+---
+
+![The `tuiksdmx` R package logo](https://raw.githubusercontent.com/MFatihTuzen/tuiksdmx/main/man/figures/logo.png){fig-align="center" width="210"}
+
+## Introduction
+
+Accessing official statistics programmatically should be straightforward. In practice, however, finding the right dataset is only part of the problem. An analyst also needs to understand its dimensions, available classifications, valid codes, and the structure of the request accepted by the data provider.
+
+This is particularly relevant for [SDMX](https://sdmx.org/) (Statistical Data and Metadata eXchange), the international standard widely used to exchange statistical data and metadata. SDMX provides a consistent framework for describing multidimensional statistical datasets, but it does not eliminate the need to understand their structures.
+
+I developed **`tuiksdmx`**, an open-source R package that provides an **authenticated, metadata-driven interface** to the Turkish Statistical Institute's (TÜİK, or TurkStat) SDMX REST service. The goal is not simply to download data. It is to make the steps leading to a valid and reproducible request easier to discover, understand, and verify.
+
+The project is available on [GitHub](https://github.com/MFatihTuzen/tuiksdmx), with detailed guides and function documentation on its [dedicated website](https://mfatihtuzen.github.io/tuiksdmx/).
+
+## Why a Metadata-Driven Client?
+
+An SDMX dataset is not necessarily a conventional rectangular table waiting to be downloaded. A particular *Dataflow* is associated with a *Data Structure Definition* (DSD), which specifies the dimensions used to identify a statistical series. These dimensions may reference *Codelists* defining permitted values, while *Concepts* describe what the dimensions represent.
+
+A typical workflow therefore involves several questions:
+
+1.  Which Dataflow contains the statistics I need?
+2.  What dimensions and classifications define that Dataflow?
+3.  Which codes are valid for the relevant dimensions?
+4.  How can I request observations without assembling a raw SDMX key by hand?
+
+`tuiksdmx` brings these steps together. It supports Dataflow discovery, DSD and Codelist inspection, metadata-based filter validation, structure-aware key construction, and observation retrieval. It also helps distinguish between the codes defined in metadata and those actually present in returned data.
+
+The distinction matters: **a code being valid does not mean that observations exist for it in every period.**
+
+## Getting Started
+
+### Install the package
+
+Version **0.1.0** is distributed through GitHub; it is **not currently on CRAN**. Install it with [`pak`](https://pak.r-lib.org/):
+
+```{r}
+#| eval: false
+install.packages("pak")  # If needed
+pak::pak("MFatihTuzen/tuiksdmx")
+
+library(tuiksdmx)
+```
+
+### Configure authentication
+
+The TÜİK SDMX service currently requires authentication for its data endpoints. `tuiksdmx` accepts an API key and handles the authentication workflow internally. For regular use, I recommend storing the key in your personal `.Renviron` file, rather than embedding credentials in an R script.
+
+``` text
+TUIK_SDMX_API_KEY=YOUR_OWN_API_KEY
+```
+
+You can open that file using `usethis::edit_r_environ()` if you have **usethis** installed. Restart R after saving it. The package will then read the environment variable automatically.
+
+**Never publish your API key or access tokens in a script, blog post, repository, or issue report.** You must obtain and configure your own credentials; installing the package does not provide an API key.
+
+### Find a Dataflow
+
+Instead of starting with a hard-coded endpoint, search the available Dataflows by subject:
+
+```{r}
+#| eval: false
+# Search by an English description
+flows <- tuik_search_dataflows(
+  "consumer price",
+  language = "en",
+  limit = 10
+)
+
+flows
+```
+
+You can also search in Turkish, for example with `tuik_search_dataflows("tüketici fiyat")`. This makes discovery possible without knowing the Dataflow identifier in advance.
+
+### Explore dimensions before retrieving data
+
+The following example uses the consumer price Dataflow `DF_TUFE_SDMX_TT01`, inspected during package development. Since provider catalogues can evolve, always check the current metadata before building a production workflow.
+
+```{r}
+#| eval: false
+# Explore the structure without retrieving observations
+tuik_explore("DF_TUFE_SDMX_TT01")
+
+# Inspect the codes associated with one dimension
+tuik_explore(
+  "DF_TUFE_SDMX_TT01",
+  dimension = "DEGISIM"
+)
+```
+
+This is one of the central design decisions behind the package: **understand the data structure first, then request observations.** It reduces the need to guess dimension identifiers or construct query keys manually.
+
+### Retrieve observations
+
+Once the relevant Dataflow and period are known, retrieving data can be concise:
+
+```{r}
+#| eval: false
+cpi <- tuik_get_data(
+  "DF_TUFE_SDMX_TT01",
+  start_period = "2026-01",
+  end_period   = "2026-01"
+)
+
+head(cpi)
+```
+
+There is an important qualification: **this request retrieves all series for the selected observation period**, not just one CPI indicator. Restricting the time range alone does not guarantee a small response.
+
+For a more focused query, the package accepts named, metadata-validated dimension filters:
+
+```{r}
+#| eval: false
+selected <- list(
+  REF_AREA = "TR",
+  FREQ = "M",
+  DEGISIM = "1",
+  SINIFLAMA_DUZEYI = "2"
+)
+
+# Validate the chosen values against the Dataflow structure
+tuik_explore(
+  "DF_TUFE_SDMX_TT01",
+  filters = selected
+)
+```
+
+A practical limitation is worth highlighting. **Complete series-key filters** allow the package to construct a targeted server-side SDMX request. **Partial filters**, on the other hand, require an explicit `allow_all = TRUE` opt-in and may lead to a broader download followed by filtering in R. The package does not present this as an efficient server-side partial-key request, nor does `allow_all` impose a data-size limit. The [filtering and performance guide](https://mfatihtuzen.github.io/tuiksdmx/articles/filtering-and-performance.html) explains the distinction in detail.
+
+## A Subtle but Important Question: Which Codes Actually Have Data?
+
+Metadata and observed data answer different questions.
+
+A **Codelist** defines the theoretical set of codes for a dimension. But some of those codes may not appear in the observations returned for a particular period and set of filters.
+
+`tuiksdmx` addresses this distinction through two complementary operations:
+
+```{r}
+#| eval: false
+profile <- tuik_flow_profile("DF_TUFE_SDMX_TT01")
+
+# Permitted codes in the metadata
+tuik_dimension_codes(profile, dimension = "DEGISIM")
+
+# Codes observed in the data for a bounded request
+observed <- tuik_available_codes(
+  profile,
+  dimension = "COICOP_2018",
+  start_period = "2026-01",
+  end_period = "2026-01",
+  allow_all = TRUE
+)
+
+observed
+```
+
+The second operation inspects **retrieved observations**, so the result is conditional on the request. It is **not** an implementation of SDMX *ContentConstraint* queries. Moreover, the example deliberately permits a potentially broad download and should be used with attention to response size.
+
+For statistical work, this separation helps prevent a common misunderstanding: the universe of valid categories is not necessarily the same as the categories populated by the data.
+
+## Documentation and Current Scope
+
+The package includes documentation on authentication, Dataflow discovery, DSD metadata, filtering, observed availability, and code-label decoding. Rather than repeating those guides here, I recommend starting with the [Getting Started guide](https://mfatihtuzen.github.io/tuiksdmx/articles/getting-started.html) and the [function reference](https://mfatihtuzen.github.io/tuiksdmx/reference/).
+
+The initial version is deliberately focused. `tuiksdmx` is an SDMX client, not a general-purpose interface to every resource on the TÜİK portal. It does not claim to support every SDMX service feature or every Dataflow without further testing. Provider structures and authentication behaviour can change, so reproducible work still requires validation and sensible request boundaries.
+
+## Final Thoughts
+
+When working with an API, it is tempting to judge a client only by how quickly it returns a table. For structured statistical data, I think a more useful measure is whether we can **identify what we requested, validate the choices we made, and reproduce the result later**.
+
+That is the idea behind `tuiksdmx`: bring discovery, statistical metadata, validation, and data retrieval into the same R workflow while keeping the raw SDMX machinery largely out of the way.
+
+I welcome feedback, reproducible bug reports, and contributions through the project repository. The package is an **independently developed open-source project**, not an official TÜİK software product.
+
+**Project links:** [GitHub repository](https://github.com/MFatihTuzen/tuiksdmx) · [Package website](https://mfatihtuzen.github.io/tuiksdmx/) · [Guides](https://mfatihtuzen.github.io/tuiksdmx/articles/) · [Issues and suggestions](https://github.com/MFatihTuzen/tuiksdmx/issues)
+
+## References
+
+- SDMX. *Statistical Data and Metadata eXchange*. <https://sdmx.org/>.
+- Turkish Statistical Institute (TÜİK). *Official website*. <https://www.tuik.gov.tr/>.
+- Tüzen, M. F. (2026). *tuiksdmx: Access the Turkish Statistical Institute SDMX REST API* (version 0.1.0). GitHub. <https://github.com/MFatihTuzen/tuiksdmx>.
+- Tüzen, M. F. *tuiksdmx package documentation*. <https://mfatihtuzen.github.io/tuiksdmx/>.
