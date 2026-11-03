@@ -2,9 +2,9 @@
 .Rhistory
 .RData
 .Ruserdata
-_freeze/
 .quarto/
 _site/
 **/*.quarto_ipynb
 
 /.quarto/
+renv.lock.backup

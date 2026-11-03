@@ -5,7 +5,7 @@ author: "M. Fatih Tüzen"
 date: "2026-11-03"
 description: "An introduction to tuiksdmx, an open-source R package for authenticated access to the Turkish Statistical Institute's SDMX API, with metadata discovery, validated filters, and practical examples."
 categories: [R Programming, Official Statistics, SDMX, API, R Packages, Data Access]
-image: "https://raw.githubusercontent.com/MFatihTuzen/tuiksdmx/main/man/figures/logo.png"
+image: "logo.png"
 format:
   html:
     toc: true
@@ -21,7 +21,7 @@ execute:
   message: false
 ---
 
-![The `tuiksdmx` R package logo](https://raw.githubusercontent.com/MFatihTuzen/tuiksdmx/main/man/figures/logo.png){fig-align="center" width="210"}
+![The `tuiksdmx` R package logo](logo.png){fig-align="center" width="210"}
 
 ## Introduction
 
